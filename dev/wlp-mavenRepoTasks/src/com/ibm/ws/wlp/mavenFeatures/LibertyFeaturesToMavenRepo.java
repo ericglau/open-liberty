@@ -45,6 +45,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.License;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
@@ -242,6 +243,7 @@ public class LibertyFeaturesToMavenRepo extends Task {
 		model.setName(feature.getName());
 		model.setDescription(feature.getDescription());
 		model.setPackaging(type.getType());
+		setLicense(model, coordinates.getVersion(), Constants.WEBSPHERE_LIBERTY_FEATURES_GROUP_ID.equals(coordinates.getGroupId()));
 		
 		List<Dependency> dependencies = new ArrayList<Dependency>();
 		model.setDependencies(dependencies);
@@ -291,6 +293,7 @@ public class LibertyFeaturesToMavenRepo extends Task {
 		model.setArtifactId(coordinates.getArtifactId());
 		model.setVersion(coordinates.getVersion());
 		model.setPackaging(Constants.ArtifactType.JSON.getType());
+		setLicense(model, version, isWebsphereLiberty);
 		
 		List<Dependency> dependencies = new ArrayList<Dependency>();
 		model.setDependencies(dependencies);
@@ -312,6 +315,20 @@ public class LibertyFeaturesToMavenRepo extends Task {
 			throw new MavenRepoGeneratorException("Could not write POM file " + targetFile, e);
 		}
 		
+	}
+	
+	private static void setLicense(Model model, String version, boolean isWebsphereLiberty) {
+		License license = new License();
+		if (!isWebsphereLiberty) {
+			license.setName(Constants.LICENSE_NAME_EPL);
+			license.setUrl(Constants.LICENSE_URL_EPL);
+			license.setDistribution(Constants.LICENSE_DISTRIBUTION_REPO);
+		} else {
+			license.setName(Constants.LICENSE_NAME_FEATURE_TERMS);
+			license.setUrl(Constants.LICENSE_URL_FEATURE_TERMS_PREFIX + version + Constants.LICENSE_URL_FEATURE_TERMS_SUFFIX);
+			license.setDistribution(Constants.LICENSE_DISTRIBUTION_REPO);
+		}
+		model.addLicense(license);
 	}
 
 	/**
