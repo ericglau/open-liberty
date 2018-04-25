@@ -243,7 +243,7 @@ public class LibertyFeaturesToMavenRepo extends Task {
 		model.setName(feature.getName());
 		model.setDescription(feature.getDescription());
 		model.setPackaging(type.getType());
-		setLicense(model, coordinates.getVersion(), Constants.WEBSPHERE_LIBERTY_FEATURES_GROUP_ID.equals(coordinates.getGroupId()));
+		setLicense(model, coordinates.getVersion(), true, feature.isRestrictedLicense(), Constants.WEBSPHERE_LIBERTY_FEATURES_GROUP_ID.equals(coordinates.getGroupId()));
 		
 		List<Dependency> dependencies = new ArrayList<Dependency>();
 		model.setDependencies(dependencies);
@@ -293,7 +293,7 @@ public class LibertyFeaturesToMavenRepo extends Task {
 		model.setArtifactId(coordinates.getArtifactId());
 		model.setVersion(coordinates.getVersion());
 		model.setPackaging(Constants.ArtifactType.JSON.getType());
-		setLicense(model, version, isWebsphereLiberty);
+		setLicense(model, version, false, false, isWebsphereLiberty);
 		
 		List<Dependency> dependencies = new ArrayList<Dependency>();
 		model.setDependencies(dependencies);
@@ -317,16 +317,21 @@ public class LibertyFeaturesToMavenRepo extends Task {
 		
 	}
 	
-	private static void setLicense(Model model, String version, boolean isWebsphereLiberty) {
+	private static void setLicense(Model model, String version, boolean feature, boolean restrictedLicense, boolean isWebsphereLiberty) {
 		License license = new License();
 		if (!isWebsphereLiberty) {
 			license.setName(Constants.LICENSE_NAME_EPL);
 			license.setUrl(Constants.LICENSE_URL_EPL);
 			license.setDistribution(Constants.LICENSE_DISTRIBUTION_REPO);
-		} else {
+		} else if (feature) {
 			license.setName(Constants.LICENSE_NAME_FEATURE_TERMS);
-			license.setUrl(Constants.LICENSE_URL_FEATURE_TERMS_PREFIX + version + Constants.LICENSE_URL_FEATURE_TERMS_SUFFIX);
+			license.setUrl(Constants.LICENSE_URL_FEATURE_TERMS_PREFIX + version + (restrictedLicense ? Constants.LICENSE_URL_FEATURE_TERMS_RESTRICTED_SUFFIX : Constants.LICENSE_URL_FEATURE_TERMS_SUFFIX));
 			license.setDistribution(Constants.LICENSE_DISTRIBUTION_REPO);
+		} else {
+			license.setName(Constants.LICENSE_NAME_MAVEN);
+			license.setUrl(Constants.LICENSE_URL_MAVEN);
+			license.setDistribution(Constants.LICENSE_DISTRIBUTION_REPO);
+			license.setComments(Constants.LICENSE_COMMENTS_MAVEN);
 		}
 		model.addLicense(license);
 	}
@@ -547,6 +552,9 @@ public class LibertyFeaturesToMavenRepo extends Task {
 					description = name;
 				}
 				
+				String licenseId = json.getString(Constants.LICENSE_ID_KEY);
+				boolean restrictedLicense = licenseId.contains(Constants.LICENSE_ID_RESTRICTED_SUBSTRING);
+				
 				String mavenCoordinates = null;
 				if (wlpInfo.containsKey(Constants.MAVEN_COORDINATES_KEY)) {
 					mavenCoordinates = wlpInfo.getString(Constants.MAVEN_COORDINATES_KEY);
@@ -556,7 +564,7 @@ public class LibertyFeaturesToMavenRepo extends Task {
 					}
 				}
 
-				LibertyFeature feature = new LibertyFeature(symbolicName, shortName, name, description, requireFeaturesWithTolerates, productVersion, mavenCoordinates, isWebsphereLiberty);
+				LibertyFeature feature = new LibertyFeature(symbolicName, shortName, name, description, requireFeaturesWithTolerates, productVersion, mavenCoordinates, isWebsphereLiberty, restrictedLicense);
 				
 				features.put(symbolicName, feature);
 			}
