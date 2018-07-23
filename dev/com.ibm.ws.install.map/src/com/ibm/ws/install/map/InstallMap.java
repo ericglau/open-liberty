@@ -89,7 +89,7 @@ import java.util.jar.Manifest;
  * <li>If it is not set, the default is "InstallMap".</li></ul>
  * </li>
  * </ul>
- * </p>
+ *
  *
  * <p>Several values can be got from this map. Calling get on some of these is unnecessary but advised.
  * <ul>
@@ -121,7 +121,7 @@ import java.util.jar.Manifest;
  * <ul><li>A java.lang.Integer indicating the progress monitor total unit of work that will allow the calling code to display the progress monitor correctly.</li></ul>
  * </li>
  * </ul>
- * </p>
+ *
  */
 @SuppressWarnings("rawtypes")
 public class InstallMap implements Map {
